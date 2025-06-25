@@ -1,0 +1,163 @@
+syntax = "proto3";
+
+package tinder.api.services;
+
+import "tinder-auth-proto";
+import "tinder-messaging-proto";
+import "tinder-profiles-proto";
+import "tinder-matching-proto";
+import "tinder-media-proto";
+import "tinder-social-proto";
+import "tinder-events-proto";
+import "google/protobuf/empty.proto";
+
+// Authentication Service
+service AuthService {
+  // Main authentication gateway
+  rpc Authenticate(tinder.api.auth.AuthGatewayRequest) returns (tinder.api.auth.AuthGatewayResponse);
+  
+  // Get auth token from refresh token
+  rpc GetAuthToken(tinder.api.auth.AuthTokenRequest) returns (tinder.api.auth.AuthTokenResponse);
+  
+  // Multi-factor authentication
+  rpc VerifyMFA(tinder.api.auth.MFARequest) returns (tinder.api.auth.MFAResponse);
+}
+
+// Profile Service
+service ProfileService {
+  // Get profile (own or other user's)
+  rpc GetProfile(tinder.api.profiles.ProfileRequest) returns (tinder.api.profiles.ProfileResponse);
+  
+  // Update own profile
+  rpc UpdateProfile(tinder.api.profiles.UpdateProfileRequest) returns (tinder.api.profiles.UpdateProfileResponse);
+  
+  // Get discovery settings
+  rpc GetDiscoverySettings(tinder.api.profiles.DiscoverySettingsRequest) returns (tinder.api.profiles.DiscoverySettingsResponse);
+  
+  // Update discovery settings
+  rpc UpdateDiscoverySettings(tinder.api.profiles.UpdateDiscoverySettingsRequest) returns (tinder.api.profiles.DiscoverySettingsResponse);
+  
+  // Get profile completion meter
+  rpc GetProfileMeter(tinder.api.profiles.ProfileMeterRequest) returns (tinder.api.profiles.ProfileMeterResponse);
+}
+
+// Matching Service
+service MatchingService {
+  // Get recommendations for swiping
+  rpc GetRecommendations(tinder.api.matching.RecommendationsRequest) returns (tinder.api.matching.RecommendationsResponse);
+  
+  // Like someone
+  rpc Like(tinder.api.matching.LikeRequest) returns (tinder.api.matching.LikeResponse);
+  
+  // Pass on someone
+  rpc Pass(tinder.api.matching.PassRequest) returns (tinder.api.matching.PassResponse);
+  
+  // Super like someone
+  rpc SuperLike(tinder.api.matching.SuperLikeRequest) returns (tinder.api.matching.SuperLikeResponse);
+  
+  // Rewind last swipe
+  rpc Rewind(tinder.api.matching.RewindRequest) returns (tinder.api.matching.RewindResponse);
+  
+  // Get matches
+  rpc GetMatches(tinder.api.matching.MatchesRequest) returns (tinder.api.matching.MatchesResponse);
+  
+  // Unmatch someone
+  rpc Unmatch(tinder.api.matching.UnmatchRequest) returns (tinder.api.matching.UnmatchResponse);
+  
+  // Get likes you (Gold feature)
+  rpc GetLikesYou(tinder.api.matching.LikesYouRequest) returns (tinder.api.matching.LikesYouResponse);
+  
+  // Get top picks
+  rpc GetTopPicks(tinder.api.matching.TopPicksRequest) returns (tinder.api.matching.TopPicksResponse);
+  
+  // Get fast match
+  rpc GetFastMatch(tinder.api.matching.FastMatchRequest) returns (tinder.api.matching.FastMatchResponse);
+}
+
+// Messaging Service
+service MessagingService {
+  // Send a message
+  rpc SendMessage(tinder.api.messaging.MessageRequest) returns (tinder.api.messaging.MessageResponse);
+  
+  // Get messages for a match
+  rpc GetMessages(tinder.api.messaging.MessagesRequest) returns (tinder.api.messaging.MessagesResponse);
+  
+  // Get direct messages received
+  rpc GetDirectMessages(tinder.api.messaging.DirectMessagesReceivedRequest) returns (tinder.api.messaging.DirectMessagesReceivedResponse);
+  
+  // Mark messages as read
+  rpc MarkMessagesRead(tinder.api.messaging.ReadStatusRequest) returns (tinder.api.messaging.ReadStatusResponse);
+  
+  // Get suggested messages
+  rpc GetSuggestedMessages(tinder.api.messaging.SuggestedMessagesRequest) returns (tinder.api.messaging.SuggestedMessagesResponse);
+  
+  // Get message controls
+  rpc GetMessageControls(tinder.api.messaging.MessageControlsRequest) returns (tinder.api.messaging.MessageControlsResponse);
+  
+  // Update message controls
+  rpc UpdateMessageControls(tinder.api.messaging.UpdateMessageControlsRequest) returns (tinder.api.messaging.UpdateMessageControlsResponse);
+  
+  // Group match messages
+  rpc GetGroupMessages(tinder.api.messaging.GroupMatchMessagesRequest) returns (tinder.api.messaging.GroupMatchMessagesResponse);
+  
+  // Send group message
+  rpc SendGroupMessage(tinder.api.messaging.GroupMatchSendMessageRequest) returns (tinder.api.messaging.GroupMatchSendMessageResponse);
+}
+
+// Media Service
+service MediaService {
+  // Create placeholder for upload
+  rpc CreatePlaceholder(tinder.api.media.CreatePlaceholderRequest) returns (tinder.api.media.CreatePlaceholderResponse);
+  
+  // Upload media
+  rpc UploadMedia(tinder.api.media.UploadMediaRequest) returns (tinder.api.media.UploadMediaResponse);
+  
+  // Update media details
+  rpc UpdateMediaDetails(tinder.api.media.UpdateMediaDetailsRequest) returns (tinder.api.media.UpdateMediaDetailsResponse);
+  
+  // Delete media
+  rpc DeleteMedia(tinder.api.media.DeleteMediaRequest) returns (tinder.api.media.DeleteMediaResponse);
+  
+  // Reorder media
+  rpc OrderMedia(tinder.api.media.OrderMediaRequest) returns (tinder.api.media.OrderMediaResponse);
+  
+  // Update avatar
+  rpc UpdatePhotoAvatar(tinder.api.media.UpdatePhotoAvatarRequest) returns (tinder.api.media.UpdatePhotoAvatarResponse);
+  
+  // Generic image upload
+  rpc UploadImage(tinder.api.media.ImageUploadRequest) returns (tinder.api.media.ImageUploadResponse);
+  
+  // Camera roll metadata
+  rpc SubmitCameraRollMetadata(tinder.api.media.CameraRollMetadataRequest) returns (tinder.api.media.CameraRollMetadataResponse);
+}
+
+// Social Service (Duos, connections, etc)
+service SocialService {
+  // Duos
+  rpc GetDuos(tinder.api.social.GetDuosRequest) returns (tinder.api.social.GetDuosResponse);
+  rpc GetDuosSettings(tinder.api.social.GetDuosSettingsRequest) returns (tinder.api.social.GetDuosSettingsResponse);
+  rpc UpdateDuosSettings(tinder.api.social.PatchDuosSettingsRequest) returns (tinder.api.social.GetDuosSettingsResponse);
+  rpc UpdateDuo(tinder.api.social.PatchDuoRequest) returns (tinder.api.social.Duo);
+  rpc GetDuoInvites(tinder.api.social.GetDuosInvitesResponsesRequest) returns (tinder.api.social.GetDuosInvitesResponsesResponse);
+  rpc RespondToDuoInvite(tinder.api.social.PatchDuosInvitesResponsesRequest) returns (tinder.api.social.PatchDuosInvitesResponsesResponse);
+  rpc SendDuoInvite(tinder.api.social.PutDuosInvitesRequest) returns (tinder.api.social.PutDuosInvitesResponse);
+  
+  // User connections
+  rpc GetUserContacts(tinder.api.social.GetUserContactsRequest) returns (tinder.api.social.GetUserContactsResponse);
+  rpc UpdateContacts(tinder.api.social.UpdateContactsRequest) returns (google.protobuf.Empty);
+  
+  // Posts
+  rpc CreatePost(tinder.api.social.CreateUserPostRequest) returns (tinder.api.social.CreateUserPostResponse);
+  rpc GetUserPosts(tinder.api.social.ListUserPostsRequest) returns (tinder.api.social.ListUserPostsResponse);
+  rpc UpdatePost(tinder.api.social.UpdateUserPostRequest) returns (tinder.api.social.UpdateUserPostResponse);
+  rpc DeletePost(tinder.api.social.DeleteUserPostRequest) returns (google.protobuf.Empty);
+  rpc RatePost(tinder.api.social.RateUserPostRequest) returns (google.protobuf.Empty);
+  
+  // Share tokens
+  rpc GetShareToken(tinder.api.social.GetTokenRequest) returns (tinder.api.social.GetTokenResponse);
+}
+
+// Event Service for analytics
+service EventService {
+  rpc PublishEvents(tinder.api.events.AppEventPublishRequest) returns (tinder.api.events.AppEventPublishResponse);
+}

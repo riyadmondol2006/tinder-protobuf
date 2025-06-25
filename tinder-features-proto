@@ -1,0 +1,400 @@
+syntax = "proto3";
+
+package tinder.api.features;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+// Verification features
+message VerificationRequest {
+  VerificationType type = 1;
+  google.protobuf.StringValue reference_id = 2;
+}
+
+enum VerificationType {
+  VERIFICATION_TYPE_UNKNOWN = 0;
+  VERIFICATION_TYPE_PHOTO = 1;
+  VERIFICATION_TYPE_VIDEO = 2;
+  VERIFICATION_TYPE_ID = 3;
+  VERIFICATION_TYPE_SELFIE = 4;
+  VERIFICATION_TYPE_LIVENESS = 5;
+}
+
+message VerificationResponse {
+  string verification_id = 1;
+  VerificationStatus status = 2;
+  google.protobuf.StringValue instructions = 3;
+  google.protobuf.StringValue upload_url = 4;
+}
+
+enum VerificationStatus {
+  VERIFICATION_STATUS_UNKNOWN = 0;
+  VERIFICATION_STATUS_PENDING = 1;
+  VERIFICATION_STATUS_IN_REVIEW = 2;
+  VERIFICATION_STATUS_APPROVED = 3;
+  VERIFICATION_STATUS_REJECTED = 4;
+  VERIFICATION_STATUS_EXPIRED = 5;
+}
+
+message FetchVerificationRequest {
+  string verification_id = 1;
+}
+
+message FetchVerificationResponse {
+  VerificationStatus status = 1;
+  google.protobuf.StringValue rejection_reason = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+// Biometric verification
+message BiometricLivenessRequest {
+  bytes face_data = 1;
+  string session_id = 2;
+  int32 frame_number = 3;
+}
+
+message BiometricLivenessResponse {
+  bool is_live = 1;
+  float confidence_score = 2;
+  google.protobuf.StringValue next_instruction = 3;
+}
+
+message BiometricsUploadRequest {
+  string verification_id = 1;
+  bytes biometric_data = 2;
+  BiometricType type = 3;
+}
+
+enum BiometricType {
+  BIOMETRIC_TYPE_UNKNOWN = 0;
+  BIOMETRIC_TYPE_FACE = 1;
+  BIOMETRIC_TYPE_VOICE = 2;
+}
+
+message BiometricsUploadResponse {
+  bool success = 1;
+  google.protobuf.StringValue error = 2;
+}
+
+// Selfie verification
+message SelfieUploadRequest {
+  string verification_id = 1;
+  bytes image_data = 2;
+  SelfieMetadata metadata = 3;
+}
+
+message SelfieMetadata {
+  float face_confidence = 1;
+  repeated FaceLandmark landmarks = 2;
+  google.protobuf.Timestamp captured_at = 3;
+}
+
+message FaceLandmark {
+  string type = 1;  // left_eye, right_eye, nose, etc
+  float x = 2;
+  float y = 3;
+}
+
+message SelfieUploadResponse {
+  bool success = 1;
+  bool matches_profile = 2;
+  float match_confidence = 3;
+}
+
+// Payments and subscriptions
+message PurchaseReceiptRequest {
+  string receipt_data = 1;  // Base64 encoded
+  string product_id = 2;
+  PurchasePlatform platform = 3;
+}
+
+enum PurchasePlatform {
+  PURCHASE_PLATFORM_UNKNOWN = 0;
+  PURCHASE_PLATFORM_IOS = 1;
+  PURCHASE_PLATFORM_ANDROID = 2;
+  PURCHASE_PLATFORM_WEB = 3;
+}
+
+message PurchaseReceiptResponse {
+  bool valid = 1;
+  PurchaseInfo purchase_info = 2;
+  google.protobuf.StringValue error = 3;
+}
+
+message PurchaseInfo {
+  string transaction_id = 1;
+  string product_id = 2;
+  google.protobuf.Timestamp purchase_date = 3;
+  google.protobuf.Timestamp expires_date = 4;
+  bool is_trial = 5;
+  bool is_renewable = 6;
+  string currency = 7;
+  double price = 8;
+}
+
+// Rewards and coins
+message RewardedVideoAdCoinRequest {
+  string ad_id = 1;
+  string ad_network = 2;
+  int32 reward_amount = 3;
+}
+
+message RewardedVideoAdCoinResponse {
+  bool success = 1;
+  int32 new_coin_balance = 2;
+}
+
+message RewardedVideoRewindRewardRequest {
+  string ad_id = 1;
+  string ad_network = 2;
+}
+
+message RewardedVideoRewindRewardResponse {
+  bool success = 1;
+  int32 rewinds_granted = 2;
+  int32 total_rewinds = 3;
+}
+
+message CoinsExpirationRequest {
+  // Empty - gets coin expiration info
+}
+
+message CoinsExpirationResponse {
+  repeated CoinBatch expiring_coins = 1;
+  int32 total_coins = 2;
+}
+
+message CoinBatch {
+  int32 amount = 1;
+  google.protobuf.Timestamp expires_at = 2;
+  string source = 3;
+}
+
+// Consumables
+message RewindConsumableRequest {
+  // Empty - uses a rewind
+}
+
+message RewindConsumableResponse {
+  bool success = 1;
+  int32 rewinds_remaining = 2;
+}
+
+message RewindSuperLikeRequest {
+  string user_id = 1;
+}
+
+message RewindSuperLikeResponse {
+  bool success = 1;
+  int32 super_likes_remaining = 2;
+}
+
+// Safety features
+message SafetyCenterRequest {
+  // Empty - gets safety center info
+}
+
+message SafetyCenterResponse {
+  repeated SafetyResource resources = 1;
+  SafetySettings settings = 2;
+  repeated EmergencyContact emergency_contacts = 3;
+}
+
+message SafetyResource {
+  string resource_id = 1;
+  string title = 2;
+  string description = 3;
+  string url = 4;
+  string category = 5;
+}
+
+message SafetySettings {
+  bool photo_verification_required = 1;
+  bool message_screening_enabled = 2;
+  bool panic_button_enabled = 3;
+  bool share_location_enabled = 4;
+}
+
+message EmergencyContact {
+  string contact_id = 1;
+  string name = 2;
+  string phone = 3;
+  string relationship = 4;
+}
+
+// Noonlight integration
+message NoonlightProfileRequest {
+  // Empty - gets Noonlight profile
+}
+
+message NoonlightProfileResponse {
+  bool is_connected = 1;
+  google.protobuf.StringValue profile_url = 2;
+  NoonlightStatus status = 3;
+}
+
+enum NoonlightStatus {
+  NOONLIGHT_STATUS_UNKNOWN = 0;
+  NOONLIGHT_STATUS_INACTIVE = 1;
+  NOONLIGHT_STATUS_ACTIVE = 2;
+  NOONLIGHT_STATUS_ALERT = 3;
+}
+
+message NoonlightTimelineRequest {
+  string date_id = 1;
+}
+
+message NoonlightTimelineResponse {
+  repeated TimelineEvent events = 1;
+}
+
+message TimelineEvent {
+  google.protobuf.Timestamp timestamp = 1;
+  string event_type = 2;
+  map<string, string> data = 3;
+}
+
+// Content moderation
+message ConsentRequest {
+  ConsentType type = 1;
+  bool consent_given = 2;
+}
+
+enum ConsentType {
+  CONSENT_TYPE_UNKNOWN = 0;
+  CONSENT_TYPE_MESSAGE_SCREENING = 1;
+  CONSENT_TYPE_DATA_SHARING = 2;
+  CONSENT_TYPE_MARKETING = 3;
+  CONSENT_TYPE_ANALYTICS = 4;
+}
+
+message ConsentResponse {
+  bool success = 1;
+  map<string, bool> current_consents = 2;
+}
+
+// Transparency and privacy
+message PrivacyRequest {
+  PrivacyAction action = 1;
+}
+
+enum PrivacyAction {
+  PRIVACY_ACTION_UNKNOWN = 0;
+  PRIVACY_ACTION_DOWNLOAD_DATA = 1;
+  PRIVACY_ACTION_DELETE_DATA = 2;
+  PRIVACY_ACTION_VIEW_SETTINGS = 3;
+}
+
+message PrivacyResponse {
+  bool success = 1;
+  google.protobuf.StringValue download_url = 2;
+  PrivacySettings settings = 3;
+}
+
+message PrivacySettings {
+  bool show_distance = 1;
+  bool show_age = 2;
+  bool show_active_status = 3;
+  bool read_receipts_enabled = 4;
+  bool typing_indicators_enabled = 5;
+}
+
+message PrivacyUpdateRequest {
+  PrivacySettings settings = 1;
+}
+
+message PrivacyUpdateResponse {
+  bool success = 1;
+  PrivacySettings updated_settings = 2;
+}
+
+// Tinder University
+message TinderUniversityEnrollmentRequest {
+  string email = 1;
+  string university_id = 2;
+  bytes student_id_photo = 3;
+}
+
+message TinderUniversityEnrollmentResponse {
+  bool success = 1;
+  EnrollmentStatus status = 2;
+  google.protobuf.StringValue rejection_reason = 3;
+}
+
+enum EnrollmentStatus {
+  ENROLLMENT_STATUS_UNKNOWN = 0;
+  ENROLLMENT_STATUS_PENDING = 1;
+  ENROLLMENT_STATUS_APPROVED = 2;
+  ENROLLMENT_STATUS_REJECTED = 3;
+  ENROLLMENT_STATUS_EXPIRED = 4;
+}
+
+message VerifyUniversityEmailOtpRequest {
+  string email = 1;
+  string otp = 2;
+}
+
+message VerifyUniversityEmailOtpResponse {
+  bool success = 1;
+  google.protobuf.StringValue university_name = 2;
+}
+
+// Games and interactive features
+message SecretAdmirerGameRequest {
+  string user_id = 1;  // User being rated
+  bool liked = 2;
+}
+
+message SecretAdmirerGameResponse {
+  bool is_match = 1;
+  google.protobuf.StringValue match_id = 2;
+  int32 remaining_plays = 3;
+}
+
+message SecretAdmirerRateRequest {
+  repeated string user_ids = 1;  // Users to rate
+  string selected_user_id = 2;
+}
+
+message SecretAdmirerRateResponse {
+  bool correct_guess = 1;
+  string actual_admirer_id = 2;
+  google.protobuf.StringValue match_id = 3;
+}
+
+// Vibes (questionnaire feature)
+message VibesQuestionRequest {
+  // Empty - gets current question
+}
+
+message VibesQuestionResponse {
+  string question_id = 1;
+  string question_text = 2;
+  repeated VibesOption options = 3;
+  int32 question_number = 4;
+  int32 total_questions = 5;
+}
+
+message VibesOption {
+  string option_id = 1;
+  string text = 2;
+  google.protobuf.StringValue emoji = 3;
+}
+
+message VibesSubscriptionRequest {
+  string question_id = 1;
+  string selected_option_id = 2;
+}
+
+message VibesSubscriptionResponse {
+  bool success = 1;
+  google.protobuf.StringValue next_question_id = 2;
+  VibesResult result = 3;  // If quiz complete
+}
+
+message VibesResult {
+  string vibe_type = 1;
+  string description = 2;
+  repeated string traits = 3;
+  string share_url = 4;
+}

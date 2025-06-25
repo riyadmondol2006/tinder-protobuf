@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+package tinder.api.messaging;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+// Basic message structure
+message Message {
+  string message_id = 1;
+  string match_id = 2;
+  string sender_id = 3;
+  string receiver_id = 4;
+  string content = 5;
+  google.protobuf.Timestamp sent_date = 6;
+  google.protobuf.Timestamp received_date = 7;
+  MessageType type = 8;
+  google.protobuf.BoolValue is_read = 9;
+  google.protobuf.StringValue media_url = 10;
+  google.protobuf.StringValue gif_id = 11;
+}
+
+enum MessageType {
+  MESSAGE_TYPE_UNKNOWN = 0;
+  MESSAGE_TYPE_TEXT = 1;
+  MESSAGE_TYPE_GIF = 2;
+  MESSAGE_TYPE_PHOTO = 3;
+  MESSAGE_TYPE_VIDEO = 4;
+  MESSAGE_TYPE_AUDIO = 5;
+  MESSAGE_TYPE_GAME = 6;
+  MESSAGE_TYPE_STICKER = 7;
+}
+
+// Send a message
+message MessageRequest {
+  string match_id = 1;
+  string content = 2;
+  MessageType type = 3;
+  google.protobuf.StringValue media_id = 4;
+  google.protobuf.StringValue gif_id = 5;
+  google.protobuf.BoolValue is_super_like_message = 6;
+  google.protobuf.StringValue reply_to_message_id = 7;
+}
+
+message MessageResponse {
+  Message message = 1;
+  bool success = 2;
+  google.protobuf.StringValue error_message = 3;
+}
+
+// Get messages for a match
+message MessagesRequest {
+  string match_id = 1;
+  google.protobuf.StringValue page_token = 2;
+  int32 limit = 3;
+  google.protobuf.Timestamp before_date = 4;
+}
+
+message MessagesResponse {
+  repeated Message messages = 1;
+  google.protobuf.StringValue next_page_token = 2;
+  bool has_more = 3;
+}
+
+// Direct messages
+message DirectMessagesReceivedRequest {
+  google.protobuf.StringValue last_activity_date = 1;
+  int32 limit = 2;
+}
+
+message DirectMessagesReceivedResponse {
+  repeated DirectMessage direct_messages = 1;
+  google.protobuf.Timestamp last_activity_date = 2;
+}
+
+message DirectMessage {
+  string message_id = 1;
+  string sender_id = 2;
+  string content = 3;
+  google.protobuf.Timestamp sent_date = 4;
+  DirectMessageStatus status = 5;
+  google.protobuf.StringValue sender_name = 6;
+  google.protobuf.StringValue sender_photo_url = 7;
+}
+
+enum DirectMessageStatus {
+  DIRECT_MESSAGE_STATUS_UNKNOWN = 0;
+  DIRECT_MESSAGE_STATUS_PENDING = 1;
+  DIRECT_MESSAGE_STATUS_ACCEPTED = 2;
+  DIRECT_MESSAGE_STATUS_REJECTED = 3;
+  DIRECT_MESSAGE_STATUS_EXPIRED = 4;
+}
+
+// Group match messages
+message GroupMatchMessagesRequest {
+  string group_match_id = 1;
+  google.protobuf.StringValue page_token = 2;
+  int32 limit = 3;
+}
+
+message GroupMatchMessagesResponse {
+  repeated Message messages = 1;
+  google.protobuf.StringValue next_page_token = 2;
+  repeated GroupMember members = 3;
+}
+
+message GroupMember {
+  string user_id = 1;
+  string name = 2;
+  google.protobuf.StringValue photo_url = 3;
+  bool is_active = 4;
+}
+
+// Send message to group
+message GroupMatchSendMessageRequest {
+  string group_match_id = 1;
+  string content = 2;
+  MessageType type = 3;
+  google.protobuf.StringValue media_id = 4;
+}
+
+message GroupMatchSendMessageResponse {
+  Message message = 1;
+  bool success = 2;
+  google.protobuf.StringValue error_message = 3;
+}
+
+// Message read status
+message ReadStatusRequest {
+  string match_id = 1;
+  repeated string message_ids = 2;
+}
+
+message ReadStatusResponse {
+  bool success = 1;
+  int32 messages_marked = 2;
+}
+
+// Suggested messages (AI-powered)
+message SuggestedMessagesRequest {
+  string match_id = 1;
+  google.protobuf.StringValue context = 2;
+  int32 count = 3;
+}
+
+message SuggestedMessagesResponse {
+  repeated SuggestedMessage suggestions = 1;
+}
+
+message SuggestedMessage {
+  string suggestion_id = 1;
+  string content = 2;
+  string category = 3;
+  float confidence_score = 4;
+}
+
+// Message controls and preferences
+message MessageControlsRequest {
+  string user_id = 1;
+}
+
+message MessageControlsResponse {
+  bool allow_message_before_match = 1;
+  bool show_read_receipts = 2;
+  bool allow_direct_messages = 3;
+  repeated string blocked_users = 4;
+  MessageFilterSettings filter_settings = 5;
+}
+
+message MessageFilterSettings {
+  bool filter_inappropriate = 1;
+  bool filter_spam = 2;
+  int32 minimum_age = 3;
+  repeated string blocked_words = 4;
+}
+
+// Update message preferences
+message UpdateMessageControlsRequest {
+  google.protobuf.BoolValue allow_message_before_match = 1;
+  google.protobuf.BoolValue show_read_receipts = 2;
+  google.protobuf.BoolValue allow_direct_messages = 3;
+  MessageFilterSettings filter_settings = 4;
+}
+
+message UpdateMessageControlsResponse {
+  bool success = 1;
+  MessageControlsResponse updated_controls = 2;
+}

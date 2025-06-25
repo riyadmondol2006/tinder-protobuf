@@ -1,0 +1,244 @@
+syntax = "proto3";
+
+package tinder.api.profiles;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+// Core user profile
+message Profile {
+  string user_id = 1;
+  string name = 2;
+  google.protobuf.Int32Value age = 3;
+  google.protobuf.StringValue bio = 4;
+  repeated Photo photos = 5;
+  google.protobuf.StringValue job_title = 6;
+  google.protobuf.StringValue company = 7;
+  google.protobuf.StringValue school = 8;
+  Location location = 9;
+  repeated Interest interests = 10;
+  Gender gender = 11;
+  GenderPreference gender_preference = 12;
+  google.protobuf.Int32Value distance_mi = 13;
+  google.protobuf.Timestamp last_active = 14;
+  bool is_verified = 15;
+  repeated Badge badges = 16;
+  google.protobuf.StringValue spotify_anthem = 17;
+  repeated Prompt prompts = 18;
+  LifestyleInfo lifestyle = 19;
+  repeated SocialAccount social_accounts = 20;
+}
+
+// Photo information
+message Photo {
+  string photo_id = 1;
+  string url = 2;
+  google.protobuf.StringValue processedFiles = 3;  // JSON array of processed sizes
+  int32 rank = 4;
+  google.protobuf.FloatValue score = 5;
+  google.protobuf.FloatValue win_count = 6;
+  CropInfo crop_info = 7;
+  PhotoType type = 8;
+}
+
+enum PhotoType {
+  PHOTO_TYPE_UNKNOWN = 0;
+  PHOTO_TYPE_REGULAR = 1;
+  PHOTO_TYPE_LOOP = 2;
+  PHOTO_TYPE_VIDEO = 3;
+}
+
+message CropInfo {
+  BoundingBox algo = 1;
+  google.protobuf.BoolValue processed_by_bullseye = 2;
+  google.protobuf.BoolValue user = 3;
+  google.protobuf.BoolValue user_customized = 4;
+}
+
+message BoundingBox {
+  google.protobuf.FloatValue height_pct = 1;
+  google.protobuf.FloatValue width_pct = 2;
+  google.protobuf.FloatValue x_offset_pct = 3;
+  google.protobuf.FloatValue y_offset_pct = 4;
+}
+
+// Location
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+  string city = 3;
+  string state = 4;
+  string country = 5;
+  google.protobuf.StringValue display_address = 6;
+}
+
+// Interests/Passions
+message Interest {
+  string interest_id = 1;
+  string name = 2;
+  string category = 3;
+  bool is_common = 4;  // Common with viewed profile
+}
+
+// Gender enums
+enum Gender {
+  GENDER_UNKNOWN = 0;
+  GENDER_MALE = 1;
+  GENDER_FEMALE = 2;
+  GENDER_OTHER = 3;
+}
+
+enum GenderPreference {
+  GENDER_PREFERENCE_UNKNOWN = 0;
+  GENDER_PREFERENCE_MEN = 1;
+  GENDER_PREFERENCE_WOMEN = 2;
+  GENDER_PREFERENCE_EVERYONE = 3;
+}
+
+// Badges (verification, etc)
+message Badge {
+  string badge_id = 1;
+  string type = 2;
+  string display_name = 3;
+  google.protobuf.StringValue icon_url = 4;
+  google.protobuf.Timestamp earned_at = 5;
+}
+
+// Profile prompts
+message Prompt {
+  string prompt_id = 1;
+  string prompt_type = 2;
+  string question = 3;
+  string answer = 4;
+  google.protobuf.StringValue background_image_url = 5;
+  google.protobuf.StringValue gradient = 6;
+}
+
+// Lifestyle info
+message LifestyleInfo {
+  google.protobuf.StringValue drinking = 1;
+  google.protobuf.StringValue smoking = 2;
+  google.protobuf.StringValue marijuana = 3;
+  google.protobuf.StringValue drugs = 4;
+  google.protobuf.StringValue pets = 5;
+  google.protobuf.StringValue kids = 6;
+  google.protobuf.StringValue religion = 7;
+  google.protobuf.StringValue politics = 8;
+  google.protobuf.StringValue zodiac = 9;
+  google.protobuf.StringValue education = 10;
+  google.protobuf.StringValue family_plans = 11;
+  google.protobuf.StringValue covid_vaccine = 12;
+  google.protobuf.StringValue personality_type = 13;
+  google.protobuf.StringValue communication_style = 14;
+  google.protobuf.StringValue love_language = 15;
+}
+
+// Social accounts
+message SocialAccount {
+  string platform = 1;  // instagram, spotify, etc
+  string username = 2;
+  google.protobuf.StringValue profile_url = 3;
+  bool is_verified = 4;
+}
+
+// Get profile request/response
+message ProfileRequest {
+  google.protobuf.StringValue user_id = 1;  // If empty, returns own profile
+  bool include_spotify = 2;
+  bool include_instagram = 3;
+}
+
+message ProfileResponse {
+  Profile profile = 1;
+  ProfileMeta meta = 2;
+  google.protobuf.StringValue error = 3;
+}
+
+message ProfileMeta {
+  bool is_boost_active = 1;
+  bool is_super_boost_active = 2;
+  int32 likes_remaining = 3;
+  int32 super_likes_remaining = 4;
+  google.protobuf.Timestamp boost_expires_at = 5;
+  Subscription subscription = 6;
+  repeated Feature features = 7;
+}
+
+message Subscription {
+  string type = 1;  // gold, platinum, plus
+  google.protobuf.Timestamp expires_at = 2;
+  repeated string benefits = 3;
+}
+
+message Feature {
+  string feature_id = 1;
+  string name = 2;
+  bool is_enabled = 3;
+  google.protobuf.StringValue config = 4;  // JSON config
+}
+
+// Update profile
+message UpdateProfileRequest {
+  google.protobuf.StringValue bio = 1;
+  google.protobuf.StringValue job_title = 2;
+  google.protobuf.StringValue company = 3;
+  google.protobuf.StringValue school = 4;
+  repeated string interest_ids = 5;
+  GenderPreference gender_preference = 6;
+  LifestyleInfo lifestyle = 7;
+  repeated Prompt prompts = 8;
+}
+
+message UpdateProfileResponse {
+  bool success = 1;
+  Profile updated_profile = 2;
+  google.protobuf.StringValue error = 3;
+}
+
+// Discovery settings
+message DiscoverySettingsRequest {
+  // Empty - gets current settings
+}
+
+message DiscoverySettingsResponse {
+  bool discoverable = 1;
+  int32 age_filter_min = 2;
+  int32 age_filter_max = 3;
+  int32 distance_filter = 4;  // in miles/km based on unit pref
+  bool show_me_on_tinder = 5;
+  bool recently_active = 6;
+  GenderPreference gender_preference = 7;
+  bool global_mode = 8;
+  google.protobuf.StringValue global_location = 9;
+}
+
+message UpdateDiscoverySettingsRequest {
+  google.protobuf.BoolValue discoverable = 1;
+  google.protobuf.Int32Value age_filter_min = 2;
+  google.protobuf.Int32Value age_filter_max = 3;
+  google.protobuf.Int32Value distance_filter = 4;
+  google.protobuf.BoolValue show_me_on_tinder = 5;
+  google.protobuf.BoolValue recently_active = 6;
+  GenderPreference gender_preference = 7;
+  google.protobuf.BoolValue global_mode = 8;
+  google.protobuf.StringValue global_location = 9;
+}
+
+// Profile meter (completeness)
+message ProfileMeterRequest {
+  // Empty
+}
+
+message ProfileMeterResponse {
+  float completion_percentage = 1;
+  repeated ProfileSection sections = 2;
+  repeated string missing_sections = 3;
+}
+
+message ProfileSection {
+  string section_id = 1;
+  string name = 2;
+  bool is_complete = 3;
+  int32 points = 4;
+  google.protobuf.StringValue hint = 5;
+}

@@ -1,0 +1,280 @@
+syntax = "proto3";
+
+package tinder.api.social;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+// Duos (friend matching) feature
+message Duo {
+  string duo_id = 1;
+  DuoMember member1 = 2;
+  DuoMember member2 = 3;
+  string name = 4;
+  google.protobuf.StringValue bio = 5;
+  repeated string photos = 6;
+  DuoStatus status = 7;
+  google.protobuf.Timestamp created_at = 8;
+  DuoPreferences preferences = 9;
+}
+
+message DuoMember {
+  string user_id = 1;
+  string name = 2;
+  google.protobuf.StringValue photo_url = 3;
+  bool is_creator = 4;
+  DuoMemberStatus status = 5;
+}
+
+enum DuoStatus {
+  DUO_STATUS_UNKNOWN = 0;
+  DUO_STATUS_PENDING = 1;
+  DUO_STATUS_ACTIVE = 2;
+  DUO_STATUS_PAUSED = 3;
+  DUO_STATUS_EXPIRED = 4;
+}
+
+enum DuoMemberStatus {
+  DUO_MEMBER_STATUS_UNKNOWN = 0;
+  DUO_MEMBER_STATUS_INVITED = 1;
+  DUO_MEMBER_STATUS_ACCEPTED = 2;
+  DUO_MEMBER_STATUS_DECLINED = 3;
+}
+
+message DuoPreferences {
+  int32 age_min = 1;
+  int32 age_max = 2;
+  int32 distance_max = 3;
+  repeated string looking_for = 4;  // fun, friendship, etc
+}
+
+// Get Duos
+message GetDuosRequest {
+  bool include_inactive = 1;
+}
+
+message GetDuosResponse {
+  repeated Duo duos = 1;
+  repeated DuoInvite pending_invites = 2;
+}
+
+// Duo invites
+message DuoInvite {
+  string invite_id = 1;
+  string from_user_id = 2;
+  string from_user_name = 3;
+  google.protobuf.StringValue from_user_photo = 4;
+  google.protobuf.Timestamp sent_at = 5;
+  google.protobuf.StringValue message = 6;
+}
+
+message GetDuosInvitesResponsesRequest {
+  // Empty - gets all pending invites
+}
+
+message GetDuosInvitesResponsesResponse {
+  repeated DuoInvite invites = 1;
+}
+
+// Duo settings
+message GetDuosSettingsRequest {
+  // Empty
+}
+
+message GetDuosSettingsResponse {
+  bool is_enabled = 1;
+  DuoPreferences preferences = 2;
+  bool show_in_discovery = 3;
+}
+
+message PatchDuosSettingsRequest {
+  google.protobuf.BoolValue is_enabled = 1;
+  DuoPreferences preferences = 2;
+  google.protobuf.BoolValue show_in_discovery = 3;
+}
+
+// Create/update duo
+message PatchDuoRequest {
+  string duo_id = 1;
+  google.protobuf.StringValue name = 2;
+  google.protobuf.StringValue bio = 3;
+  DuoPreferences preferences = 4;
+}
+
+// Respond to duo invites
+message PatchDuosInvitesResponsesRequest {
+  string invite_id = 1;
+  bool accept = 2;
+}
+
+message PatchDuosInvitesResponsesResponse {
+  bool success = 1;
+  google.protobuf.StringValue duo_id = 2;  // If accepted
+}
+
+// Send duo invite
+message PutDuosInvitesRequest {
+  string to_user_id = 1;
+  google.protobuf.StringValue message = 2;
+}
+
+message PutDuosInvitesResponse {
+  bool success = 1;
+  string invite_id = 2;
+}
+
+// Duo matching
+message PatchDuoMatchRequest {
+  string duo_match_id = 1;
+  string action = 2;  // like, pass, etc
+}
+
+// User connections (contacts)
+message GetUserContactsRequest {
+  bool include_facebook = 1;
+  bool include_phone = 2;
+}
+
+message GetUserContactsResponse {
+  repeated UserContact contacts = 1;
+  int32 total_count = 2;
+}
+
+message UserContact {
+  string contact_id = 1;
+  string name = 2;
+  google.protobuf.StringValue phone = 3;
+  google.protobuf.StringValue email = 4;
+  google.protobuf.StringValue tinder_user_id = 5;
+  bool is_on_tinder = 6;
+  ContactSource source = 7;
+}
+
+enum ContactSource {
+  CONTACT_SOURCE_UNKNOWN = 0;
+  CONTACT_SOURCE_PHONE = 1;
+  CONTACT_SOURCE_FACEBOOK = 2;
+  CONTACT_SOURCE_INSTAGRAM = 3;
+}
+
+message UpdateContactsRequest {
+  repeated ContactUpdate updates = 1;
+}
+
+message ContactUpdate {
+  string phone = 1;
+  string name = 2;
+  google.protobuf.StringValue email = 3;
+}
+
+// Share My Date feature
+message GetTokenRequest {
+  string purpose = 1;  // share_date, etc
+}
+
+message GetTokenResponse {
+  string token = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+// Posts/Updates
+message CreateUserPostRequest {
+  string content = 1;
+  repeated string media_ids = 2;
+  PostType type = 3;
+  PostVisibility visibility = 4;
+  google.protobuf.StringValue location = 5;
+}
+
+enum PostType {
+  POST_TYPE_UNKNOWN = 0;
+  POST_TYPE_STATUS = 1;
+  POST_TYPE_PHOTO = 2;
+  POST_TYPE_VIDEO = 3;
+  POST_TYPE_POLL = 4;
+}
+
+enum PostVisibility {
+  POST_VISIBILITY_UNKNOWN = 0;
+  POST_VISIBILITY_PUBLIC = 1;
+  POST_VISIBILITY_MATCHES = 2;
+  POST_VISIBILITY_PRIVATE = 3;
+}
+
+message CreateUserPostResponse {
+  string post_id = 1;
+  Post post = 2;
+}
+
+message Post {
+  string post_id = 1;
+  string user_id = 2;
+  string content = 3;
+  repeated string media_urls = 4;
+  PostType type = 5;
+  PostVisibility visibility = 6;
+  google.protobuf.Timestamp created_at = 7;
+  int32 like_count = 8;
+  int32 comment_count = 9;
+  bool is_liked_by_viewer = 10;
+}
+
+message ListUserPostsRequest {
+  google.protobuf.StringValue user_id = 1;  // Empty for own posts
+  google.protobuf.StringValue page_token = 2;
+  int32 limit = 3;
+}
+
+message ListUserPostsResponse {
+  repeated Post posts = 1;
+  google.protobuf.StringValue next_page_token = 2;
+}
+
+message UpdateUserPostRequest {
+  string post_id = 1;
+  google.protobuf.StringValue content = 2;
+  PostVisibility visibility = 3;
+}
+
+message UpdateUserPostResponse {
+  Post post = 1;
+}
+
+message DeleteUserPostRequest {
+  string post_id = 1;
+}
+
+message RateUserPostRequest {
+  string post_id = 1;
+  bool like = 2;
+}
+
+// Activities/Events
+message Activity {
+  string activity_id = 1;
+  string name = 2;
+  string description = 3;
+  ActivityType type = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp end_time = 6;
+  Location location = 7;
+  repeated string participant_ids = 8;
+  int32 max_participants = 9;
+  google.protobuf.StringValue host_id = 10;
+}
+
+enum ActivityType {
+  ACTIVITY_TYPE_UNKNOWN = 0;
+  ACTIVITY_TYPE_SPORTS = 1;
+  ACTIVITY_TYPE_FOOD = 2;
+  ACTIVITY_TYPE_ENTERTAINMENT = 3;
+  ACTIVITY_TYPE_SOCIAL = 4;
+  ACTIVITY_TYPE_OUTDOOR = 5;
+}
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+  string address = 3;
+  google.protobuf.StringValue venue_name = 4;
+}

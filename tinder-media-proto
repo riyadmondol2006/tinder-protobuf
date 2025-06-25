@@ -1,0 +1,224 @@
+syntax = "proto3";
+
+package tinder.api.media;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+// Create placeholder for media upload
+message CreatePlaceholderRequest {
+  int32 num_pending_media = 1;
+  MediaType media_type = 2;
+}
+
+enum MediaType {
+  MEDIA_TYPE_UNKNOWN = 0;
+  MEDIA_TYPE_PHOTO = 1;
+  MEDIA_TYPE_VIDEO = 2;
+  MEDIA_TYPE_LOOP = 3;
+}
+
+message CreatePlaceholderResponse {
+  repeated MediaPlaceholder placeholders = 1;
+}
+
+message MediaPlaceholder {
+  string media_id = 1;
+  string upload_url = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  MediaUploadHeaders headers = 4;
+}
+
+message MediaUploadHeaders {
+  string x_amz_acl = 1;
+  string x_amz_server_side_encryption = 2;
+  string x_amz_algorithm = 3;
+  string x_amz_credential = 4;
+  string x_amz_date = 5;
+  string x_amz_signature = 6;
+  string policy = 7;
+}
+
+// Upload media
+message UploadMediaRequest {
+  string media_id = 1;
+  bytes data = 2;
+  string content_type = 3;
+  MediaMetadata metadata = 4;
+}
+
+message MediaMetadata {
+  int32 width = 1;
+  int32 height = 2;
+  google.protobuf.FloatValue duration = 3;  // For video
+  int64 size_bytes = 4;
+  string mime_type = 5;
+  google.protobuf.StringValue camera_make = 6;
+  google.protobuf.StringValue camera_model = 7;
+  google.protobuf.Timestamp taken_at = 8;
+}
+
+message UploadMediaResponse {
+  bool success = 1;
+  string media_id = 2;
+  MediaProcessingStatus status = 3;
+  google.protobuf.StringValue error = 4;
+}
+
+enum MediaProcessingStatus {
+  MEDIA_PROCESSING_STATUS_UNKNOWN = 0;
+  MEDIA_PROCESSING_STATUS_PENDING = 1;
+  MEDIA_PROCESSING_STATUS_PROCESSING = 2;
+  MEDIA_PROCESSING_STATUS_COMPLETED = 3;
+  MEDIA_PROCESSING_STATUS_FAILED = 4;
+}
+
+// Update media details
+message UpdateMediaDetailsRequest {
+  string media_id = 1;
+  CropInfo crop_info = 2;
+  Prompt prompt = 3;
+  google.protobuf.StringValue caption = 4;
+  google.protobuf.Int32Value rank = 5;
+}
+
+message CropInfo {
+  BoundingBox algo = 1;
+  google.protobuf.BoolValue processed_by_bullseye = 2;
+  google.protobuf.BoolValue user = 3;
+  google.protobuf.BoolValue user_customized = 4;
+}
+
+message BoundingBox {
+  google.protobuf.FloatValue height_pct = 1;
+  google.protobuf.FloatValue width_pct = 2;
+  google.protobuf.FloatValue x_offset_pct = 3;
+  google.protobuf.FloatValue y_offset_pct = 4;
+}
+
+message Prompt {
+  int32 prompt_version = 1;
+  string prompt_id = 2;
+  string prompt_type = 3;
+  google.protobuf.StringValue campaign_id = 4;
+  google.protobuf.StringValue answer = 5;
+  google.protobuf.StringValue background_image_url = 6;
+  google.protobuf.StringValue gradient = 7;
+  google.protobuf.StringValue prompt_title = 8;
+}
+
+message UpdateMediaDetailsResponse {
+  bool success = 1;
+  Media updated_media = 2;
+}
+
+message Media {
+  string media_id = 1;
+  string url = 2;
+  repeated ProcessedFile processed_files = 3;
+  int32 rank = 4;
+  google.protobuf.FloatValue score = 5;
+  MediaType type = 6;
+  CropInfo crop_info = 7;
+  google.protobuf.StringValue caption = 8;
+  Prompt prompt = 9;
+  MediaProcessingStatus status = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
+message ProcessedFile {
+  string url = 1;
+  int32 width = 2;
+  int32 height = 3;
+  string quality = 4;  // thumb, small, medium, large, original
+}
+
+// Delete media
+message DeleteMediaRequest {
+  repeated string media_ids = 1;
+}
+
+message DeleteMediaResponse {
+  bool success = 1;
+  repeated string deleted_media_ids = 2;
+  repeated string failed_media_ids = 3;
+}
+
+// Order media (reorder photos)
+message OrderMediaRequest {
+  repeated string media_ids = 1;
+}
+
+message OrderMediaResponse {
+  bool success = 1;
+  repeated Media ordered_media = 2;
+}
+
+// Update photo as avatar
+message UpdatePhotoAvatarRequest {
+  string media_id = 1;
+  CropInfo crop_info = 2;
+}
+
+message UpdatePhotoAvatarResponse {
+  bool success = 1;
+  string avatar_url = 2;
+}
+
+// Image upload for various features
+message ImageUploadRequest {
+  bytes image_data = 1;
+  string purpose = 2;  // profile, message, verification, etc
+  google.protobuf.StringValue reference_id = 3;
+}
+
+message ImageUploadResponse {
+  bool success = 1;
+  string image_id = 2;
+  string image_url = 3;
+  google.protobuf.StringValue error = 4;
+}
+
+// Camera roll metadata (for smart photo selection)
+message CameraRollMetadataRequest {
+  repeated PhotoMetadata photos = 1;
+}
+
+message PhotoMetadata {
+  string local_id = 1;
+  google.protobuf.Timestamp taken_at = 2;
+  LocationData location = 3;
+  repeated string detected_faces = 4;
+  float quality_score = 5;
+}
+
+message LocationData {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message CameraRollMetadataResponse {
+  repeated PhotoSuggestion suggestions = 1;
+}
+
+message PhotoSuggestion {
+  string local_id = 1;
+  float recommendation_score = 2;
+  repeated string reasons = 3;
+}
+
+// Media tags for categorization
+message MediaTagsRequest {
+  string media_id = 1;
+}
+
+message MediaTagsResponse {
+  repeated MediaTag tags = 1;
+}
+
+message MediaTag {
+  string tag_id = 1;
+  string category = 2;
+  string value = 3;
+  float confidence = 4;
+}

@@ -1,0 +1,239 @@
+syntax = "proto3";
+
+package tinder.api.matching;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "tinder-profiles-proto";
+
+// Core recommendation for swiping
+message Recommendation {
+  tinder.api.profiles.Profile user = 1;
+  string rec_id = 2;
+  RecommendationType type = 3;
+  google.protobuf.StringValue content_hash = 4;
+  google.protobuf.Int32Value s_number = 5;
+  repeated string teasers = 6;
+  google.protobuf.StringValue distance_mi = 7;
+  google.protobuf.StringValue distance_km = 8;
+  google.protobuf.StringValue common_friend_name = 9;
+  repeated string common_interests = 10;
+  google.protobuf.BoolValue is_super_like_upsell = 11;
+  google.protobuf.BoolValue is_boost_upsell = 12;
+  RecommendationContext context = 13;
+}
+
+enum RecommendationType {
+  RECOMMENDATION_TYPE_UNKNOWN = 0;
+  RECOMMENDATION_TYPE_REGULAR = 1;
+  RECOMMENDATION_TYPE_SUPER_LIKE = 2;
+  RECOMMENDATION_TYPE_BOOST = 3;
+  RECOMMENDATION_TYPE_TOP_PICK = 4;
+  RECOMMENDATION_TYPE_FAST_MATCH = 5;
+}
+
+message RecommendationContext {
+  google.protobuf.StringValue experiment_info = 1;
+  google.protobuf.StringValue recommendation_reason = 2;
+  bool is_traveling = 3;
+}
+
+// Get recommendations
+message RecommendationsRequest {
+  google.protobuf.Int32Value count = 1;
+  google.protobuf.StringValue locale = 2;
+}
+
+message RecommendationsResponse {
+  repeated Recommendation results = 1;
+  google.protobuf.StringValue page_token = 2;
+  int32 quota_remaining = 3;
+  google.protobuf.Timestamp quota_reset_at = 4;
+}
+
+// Like someone
+message LikeRequest {
+  string user_id = 1;
+  google.protobuf.StringValue content_hash = 2;
+  google.protobuf.Int32Value s_number = 3;
+  bool is_super_like = 4;
+  google.protobuf.StringValue message = 5;  // For super like with message
+  google.protobuf.StringValue photo_id = 6;  // Which photo was liked
+  repeated string liked_content_ids = 7;
+  google.protobuf.StringValue rec_traveling_source = 8;
+  LikeContext context = 9;
+}
+
+message LikeContext {
+  string source = 1;  // recs, top_picks, likes_you, etc
+  google.protobuf.StringValue experiment_info = 2;
+}
+
+message LikeResponse {
+  bool match = 1;
+  google.protobuf.StringValue match_id = 2;
+  int32 likes_remaining = 3;
+  int32 super_likes_remaining = 4;
+  google.protobuf.BoolValue is_boost_match = 5;
+  google.protobuf.BoolValue is_super_boost_match = 6;
+  google.protobuf.BoolValue is_experiences_match = 7;
+  google.protobuf.BoolValue is_fast_match = 8;
+  google.protobuf.StringValue user_info = 9;  // Limited info if matched
+}
+
+// Pass on someone
+message PassRequest {
+  string user_id = 1;
+  google.protobuf.StringValue content_hash = 2;
+  google.protobuf.Int32Value s_number = 3;
+  google.protobuf.StringValue rec_traveling_source = 4;
+}
+
+message PassResponse {
+  bool success = 1;
+}
+
+// Super like
+message SuperLikeRequest {
+  string user_id = 1;
+  google.protobuf.StringValue content_hash = 2;
+  google.protobuf.StringValue message = 3;
+  google.protobuf.StringValue photo_id = 4;
+}
+
+message SuperLikeResponse {
+  bool match = 1;
+  google.protobuf.StringValue match_id = 2;
+  int32 super_likes_remaining = 3;
+  google.protobuf.Timestamp super_likes_reset_at = 4;
+}
+
+// Rewind last swipe
+message RewindRequest {
+  // Empty - rewinds last action
+}
+
+message RewindResponse {
+  bool success = 1;
+  string user_id = 2;  // User that was rewound
+  SwipeAction original_action = 3;
+}
+
+enum SwipeAction {
+  SWIPE_ACTION_UNKNOWN = 0;
+  SWIPE_ACTION_LIKE = 1;
+  SWIPE_ACTION_PASS = 2;
+  SWIPE_ACTION_SUPER_LIKE = 3;
+}
+
+// Matches
+message Match {
+  string match_id = 1;
+  tinder.api.profiles.Profile person = 2;
+  google.protobuf.Timestamp created_date = 3;
+  google.protobuf.StringValue last_message = 4;
+  google.protobuf.Timestamp last_activity_date = 5;
+  int32 message_count = 6;
+  bool is_new_message = 7;
+  bool is_super_like = 8;
+  bool is_boost_match = 9;
+  bool is_super_boost_match = 10;
+  bool is_experiences_match = 11;
+  bool is_gold_match = 12;
+  MatchContext context = 13;
+}
+
+message MatchContext {
+  google.protobuf.StringValue common_friend_name = 1;
+  repeated string common_interests = 2;
+  google.protobuf.StringValue matched_via = 3;  // top_pick, super_like, etc
+}
+
+// Get matches
+message MatchesRequest {
+  google.protobuf.StringValue page_token = 1;
+  int32 count = 2;
+  bool is_message = 3;  // Only matches with messages
+}
+
+message MatchesResponse {
+  repeated Match matches = 1;
+  google.protobuf.StringValue next_page_token = 2;
+}
+
+// Unmatch
+message UnmatchRequest {
+  string match_id = 1;
+  UnmatchReason reason = 2;
+  google.protobuf.StringValue report_reason = 3;
+}
+
+enum UnmatchReason {
+  UNMATCH_REASON_UNKNOWN = 0;
+  UNMATCH_REASON_NOT_INTERESTED = 1;
+  UNMATCH_REASON_INAPPROPRIATE_MESSAGES = 2;
+  UNMATCH_REASON_INAPPROPRIATE_PHOTOS = 3;
+  UNMATCH_REASON_FEELS_LIKE_SPAM = 4;
+  UNMATCH_REASON_OTHER = 5;
+}
+
+message UnmatchResponse {
+  bool success = 1;
+}
+
+// Likes You (Gold feature)
+message LikesYouRequest {
+  google.protobuf.StringValue page_token = 1;
+  int32 count = 2;
+}
+
+message LikesYouResponse {
+  repeated LikedYouProfile profiles = 1;
+  google.protobuf.StringValue next_page_token = 2;
+  int32 total_count = 3;
+  bool is_gold_subscriber = 4;
+}
+
+message LikedYouProfile {
+  string user_id = 1;
+  google.protobuf.StringValue blurred_photo_url = 2;  // For non-Gold users
+  tinder.api.profiles.Profile profile = 3;  // For Gold users
+  google.protobuf.Timestamp liked_at = 4;
+  bool is_super_like = 5;
+  google.protobuf.StringValue message = 6;
+}
+
+// Top Picks
+message TopPicksRequest {
+  // Empty - gets today's picks
+}
+
+message TopPicksResponse {
+  repeated TopPick picks = 1;
+  google.protobuf.Timestamp refresh_at = 2;
+  bool can_refresh = 3;
+  int32 free_picks_remaining = 4;
+}
+
+message TopPick {
+  tinder.api.profiles.Profile profile = 1;
+  string pick_id = 2;
+  google.protobuf.StringValue reason = 3;
+  bool is_super_likeable = 4;
+}
+
+// Fast Match
+message FastMatchRequest {
+  int32 count = 1;
+}
+
+message FastMatchResponse {
+  repeated FastMatchProfile profiles = 1;
+  int32 total_count = 2;
+}
+
+message FastMatchProfile {
+  string user_id = 1;
+  google.protobuf.StringValue teaser_photo_url = 2;
+  int32 match_percentage = 3;
+}
